@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ELKHALFY - لوحة التحكم</title>
+<style>
+  :root {
+    --bg: #0A0E1A; --card: #111827; --sidebar: #0D1320;
+    --primary: #6C63FF; --primary-dark: #4F46E5; --accent: #00D4AA;
+    --danger: #FF4444; --text: #fff; --text2: #8B9BB4; --border: #1E2A3A;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Tahoma, sans-serif; min-height: 100vh; }
+  /* Login */
+  #login-overlay {
+    position: fixed; inset: 0; background: var(--bg);
+    display: flex; align-items: center; justify-content: center; z-index: 999;
+  }
+  .login-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 20px; padding: 40px; width: 360px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(108,99,255,0.08);
+  }
+  .logo-circle {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 16px; font-size: 32px; font-weight: 700;
+    box-shadow: 0 0 30px rgba(108,99,255,0.5);
+  }
+  .login-card h2 { text-align: center; margin-bottom: 6px; font-size: 20px; }
+  .login-card p { text-align: center; color: var(--text2); font-size: 13px; margin-bottom: 28px; }
+  /* Layout */
+  #app { display: none; min-height: 100vh; flex-direction: column; }
+  .topbar {
+    background: var(--sidebar); border-bottom: 1px solid var(--border);
+    padding: 0 24px; height: 58px; display: flex; align-items: center; gap: 16px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .topbar-logo { display: flex; align-items: center; gap: 10px; }
+  .topbar-logo .lc { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg,var(--primary),var(--primary-dark)); display:flex;align-items:center;justify-content:center;font-weight:700; box-shadow: 0 0 15px rgba(108,99,255,0.4); }
+  .topbar-logo span { font-weight: 700; font-size: 15px; letter-spacing: 2px; }
+  nav { display: flex; gap: 4px; margin-right: 20px; }
+  nav button {
+    background: transparent; border: 1px solid transparent; color: var(--text2);
+    padding: 7px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 6px;
+    transition: all 0.2s;
+  }
+  nav button.active, nav button:hover { background: rgba(108,99,255,0.15); color: var(--primary); border-color: var(--primary); }
+  .topbar-right { margin-right: auto; display: flex; align-items: center; gap: 12px; }
+  .badge-stat { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 6px 14px; font-size: 12px; color: var(--text2); }
+  .badge-stat span { color: var(--primary); font-weight: 700; font-size: 14px; }
+  .logout-btn { background: transparent; border: 1px solid var(--border); color: var(--text2); padding: 7px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+  .logout-btn:hover { border-color: var(--danger); color: var(--danger); }
+  main { padding: 24px; max-width: 1200px; margin: 0 auto; width: 100%; flex: 1; }
+  /* Tabs */
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  /* Form */
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 20px; }
+  .card h3 { font-size: 16px; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; color: var(--text); }
+  .card h3 i { color: var(--primary); font-size: 18px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group label { font-size: 12px; color: var(--text2); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  input, select, textarea {
+    background: var(--bg); border: 1px solid var(--border); color: var(--text);
+    padding: 10px 14px; border-radius: 10px; font-size: 14px; width: 100%;
+    transition: border-color 0.2s; outline: none; font-family: inherit;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--primary); }
+  input::placeholder { color: var(--text2); }
+  select option { background: var(--card); }
+  .btn {
+    padding: 11px 24px; border-radius: 10px; font-size: 14px; font-weight: 600;
+    cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s;
+  }
+  .btn-primary { background: linear-gradient(135deg,var(--primary),var(--primary-dark)); color: #fff; }
+  .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(108,99,255,0.4); }
+  .btn-danger { background: rgba(255,68,68,0.15); color: var(--danger); border: 1px solid rgba(255,68,68,0.3); }
+  .btn-danger:hover { background: var(--danger); color: #fff; }
+  .btn-success { background: rgba(0,212,170,0.15); color: var(--accent); border: 1px solid rgba(0,212,170,0.3); }
+  .btn-success:hover { background: var(--accent); color: var(--bg); }
+  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text2); }
+  .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+  .btn-sm { padding: 6px 12px; font-size: 12px; border-radius: 7px; }
+  /* Table */
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: right; font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 14px; background: var(--sidebar); }
+  td { padding: 12px 14px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: middle; }
+  tr:hover td { background: rgba(108,99,255,0.04); }
+  .code-badge {
+    font-family: monospace; background: rgba(108,99,255,0.15); color: var(--primary);
+    padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: 700; letter-spacing: 1px;
+  }
+  .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .status-active { background: rgba(0,212,170,0.15); color: var(--accent); }
+  .status-inactive { background: rgba(255,68,68,0.15); color: var(--danger); }
+  .type-badge { background: var(--sidebar); border: 1px solid var(--border); padding: 3px 8px; border-radius: 6px; font-size: 11px; color: var(--text2); }
+  /* Stats */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+  .stat-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .stat-card .icon { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .stat-card .value { font-size: 28px; font-weight: 700; }
+  .stat-card .label { font-size: 12px; color: var(--text2); }
+  /* Generator */
+  .gen-output { font-family: monospace; font-size: 22px; font-weight: 700; color: var(--primary); text-align: center; letter-spacing: 4px; background: var(--bg); padding: 16px; border-radius: 10px; border: 1px solid var(--border); cursor: pointer; user-select: all; }
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px; background: var(--card); border: 1px solid var(--border);
+    padding: 14px 20px; border-radius: 12px; font-size: 14px; z-index: 9999;
+    transform: translateY(80px); opacity: 0; transition: all 0.3s; box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { border-left: 3px solid var(--accent); }
+  .toast.error { border-left: 3px solid var(--danger); }
+  .server-type-fields { margin-top: 12px; }
+  .toggle-row { display: flex; align-items: center; gap: 10px; }
+  .toggle { position: relative; width: 42px; height: 22px; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .slider { position: absolute; inset: 0; background: var(--border); border-radius: 22px; cursor: pointer; transition: 0.3s; }
+  .slider::before { content: ''; position: absolute; width: 16px; height: 16px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: 0.3s; }
+  input:checked + .slider { background: var(--primary); }
+  input:checked + .slider::before { transform: translateX(20px); }
+  .search-input { position: relative; }
+  .search-input input { padding-right: 36px; }
+  .search-input::before { content: '🔍'; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 13px; }
+  @media (max-width: 768px) { .grid-2,.grid-3,.stats-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<!-- Login Overlay -->
+<div id="login-overlay">
+  <div class="login-card">
+    <div class="logo-circle">K</div>
+    <h2>ELKHALFY IPTV</h2>
+    <p>لوحة تحكم المشرف</p>
+    <div class="form-group" style="margin-bottom:16px">
+      <label>كلمة المرور</label>
+      <input type="password" id="login-pass" placeholder="أدخل كلمة المرور" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="doLogin()">
+      🔐 دخول
+    </button>
+    <p style="text-align:center;margin-top:16px;font-size:11px;color:var(--text2)">ELKHALFY Admin Panel v1.0</p>
+  </div>
+</div>
+
+<!-- Main App -->
+<div id="app" style="display:none;flex-direction:column">
+  <div class="topbar">
+    <div class="topbar-logo">
+      <div class="lc">K</div>
+      <span>ELKHALFY</span>
+    </div>
+    <nav>
+      <button class="active" onclick="switchTab('dashboard',this)">📊 الرئيسية</button>
+      <button onclick="switchTab('add-code',this)">➕ إضافة كود</button>
+      <button onclick="switchTab('codes',this)">🗝️ الأكواد</button>
+      <button onclick="switchTab('add-server',this)">🖥️ إضافة سيرفر</button>
+      <button onclick="switchTab('servers',this)">🌐 السيرفرات</button>
+    </nav>
+    <div class="topbar-right">
+      <div class="badge-stat">الأكواد: <span id="stat-codes">-</span></div>
+      <div class="badge-stat">السيرفرات: <span id="stat-servers">-</span></div>
+      <button class="logout-btn" onclick="logout()">خروج ↪</button>
+    </div>
+  </div>
+
+  <main>
+    <!-- Dashboard -->
+    <div class="tab-content active" id="tab-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="icon" style="background:rgba(108,99,255,0.15);color:var(--primary)">🗝️</div>
+          <div class="value" id="d-total">-</div>
+          <div class="label">إجمالي الأكواد</div>
+        </div>
+        <div class="stat-card">
+          <div class="icon" style="background:rgba(0,212,170,0.15);color:var(--accent)">✅</div>
+          <div class="value" id="d-active">-</div>
+          <div class="label">أكواد نشطة</div>
+        </div>
+        <div class="stat-card">
+          <div class="icon" style="background:rgba(255,68,68,0.15);color:var(--danger)">❌</div>
+          <div class="value" id="d-inactive">-</div>
+          <div class="label">أكواد معطلة</div>
+        </div>
+        <div class="stat-card">
+          <div class="icon" style="background:rgba(108,99,255,0.15);color:var(--primary)">🖥️</div>
+          <div class="value" id="d-servers">-</div>
+          <div class="label">السيرفرات</div>
+        </div>
+      </div>
+      <div class="card">
+        <h3><i>🗝️</i> آخر الأكواد المضافة</h3>
+        <div id="recent-codes"><div style="color:var(--text2);text-align:center;padding:20px">جاري التحميل...</div></div>
+      </div>
+    </div>
+
+    <!-- Add Code -->
+    <div class="tab-content" id="tab-add-code">
+      <div class="card">
+        <h3><i>⚙️</i> مولّد الأكواد</h3>
+        <div class="gen-output" id="gen-preview" onclick="copyCode()">اضغط لتوليد كود</div>
+        <div style="display:flex;gap:10px;margin-top:12px">
+          <button class="btn btn-primary" onclick="generateCode()">🎲 توليد كود جديد</button>
+          <button class="btn btn-outline" onclick="copyCode()">📋 نسخ الكود</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3><i>➕</i> إضافة كود تفعيل</h3>
+        <div class="grid-2" style="margin-bottom:16px">
+          <div class="form-group">
+            <label>الكود *</label>
+            <input type="text" id="nc-code" placeholder="XXXX-XXXX" style="font-family:monospace;font-size:16px;font-weight:700;letter-spacing:2px">
+          </div>
+          <div class="form-group">
+            <label>تاريخ الانتهاء *</label>
+            <input type="date" id="nc-expiry">
+          </div>
+        </div>
+        <div class="grid-2" style="margin-bottom:16px">
+          <div class="form-group">
+            <label>السيرفر</label>
+            <select id="nc-server">
+              <option value="">-- اختر السيرفر --</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>تسمية (اختياري)</label>
+            <input type="text" id="nc-label" placeholder="اسم المشترك">
+          </div>
+        </div>
+        <div class="toggle-row" style="margin-bottom:16px">
+          <label class="toggle"><input type="checkbox" id="nc-active" checked><span class="slider"></span></label>
+          <span style="font-size:13px;color:var(--text2)">الكود نشط</span>
+        </div>
+        <button class="btn btn-primary" onclick="addCode()">💾 حفظ الكود</button>
+      </div>
+    </div>
+
+    <!-- Codes List -->
+    <div class="tab-content" id="tab-codes">
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <h3 style="margin:0"><i>🗝️</i> الأكواد (<span id="codes-count">0</span>)</h3>
+          <div class="search-input">
+            <input type="text" id="codes-search" placeholder="بحث..." style="width:200px" oninput="filterCodes()">
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>الكود</th>
+                <th>الحالة</th>
+                <th>النوع</th>
+                <th>السيرفر</th>
+                <th>الانتهاء</th>
+                <th>التسمية</th>
+                <th>إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="codes-body">
+              <tr><td colspan="7" style="text-align:center;color:var(--text2);padding:30px">جاري التحميل...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Server -->
+    <div class="tab-content" id="tab-add-server">
+      <div class="card">
+        <h3><i>🖥️</i> إضافة سيرفر</h3>
+        <div class="grid-2" style="margin-bottom:16px">
+          <div class="form-group">
+            <label>اسم السيرفر *</label>
+            <input type="text" id="ns-name" placeholder="مثال: سيرفر رئيسي">
+          </div>
+          <div class="form-group">
+            <label>نوع السيرفر *</label>
+            <select id="ns-type" onchange="updateServerFields()">
+              <option value="xtream">Xtream Codes</option>
+              <option value="m3u">M3U / M3U8</option>
+              <option value="mac">MAC / Stalker Portal</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:16px">
+          <label>الرابط (URL) *</label>
+          <input type="text" id="ns-url" placeholder="http://server.com:8080">
+        </div>
+        <div id="xtream-fields" class="server-type-fields">
+          <div class="grid-2">
+            <div class="form-group">
+              <label>اسم المستخدم</label>
+              <input type="text" id="ns-username" placeholder="username">
+            </div>
+            <div class="form-group">
+              <label>كلمة المرور</label>
+              <input type="password" id="ns-password" placeholder="password">
+            </div>
+          </div>
+        </div>
+        <div id="mac-fields" class="server-type-fields" style="display:none">
+          <div class="form-group">
+            <label>MAC Address</label>
+            <input type="text" id="ns-mac" placeholder="00:1A:79:XX:XX:XX">
+          </div>
+        </div>
+        <div style="margin-top:20px">
+          <button class="btn btn-primary" onclick="addServer()">💾 حفظ السيرفر</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Servers List -->
+    <div class="tab-content" id="tab-servers">
+      <div class="card">
+        <h3><i>🌐</i> السيرفرات (<span id="servers-count">0</span>)</h3>
+        <div style="overflow-x:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>الاسم</th>
+                <th>النوع</th>
+                <th>الرابط</th>
+                <th>المستخدم</th>
+                <th>إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="servers-body">
+              <tr><td colspan="5" style="text-align:center;color:var(--text2);padding:30px">جاري التحميل...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+// Firebase config
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js';
+import { getDatabase, ref, get, set, remove, push, onValue } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyExample", // Not needed for Realtime DB with REST rules
+  authDomain: "elkhalfy-324b9.firebaseapp.com",
+  databaseURL: "https://elkhalfy-324b9-default-rtdb.firebaseio.com",
+  projectId: "elkhalfy-324b9",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// ── Auth ──────────────────────────────────────────────
+const ADMIN_PASS = 'elkhalfy@admin2025';
+window.doLogin = function() {
+  const p = document.getElementById('login-pass').value;
+  if (p === ADMIN_PASS) {
+    document.getElementById('login-overlay').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    loadAll();
+  } else {
+    showToast('كلمة المرور غير صحيحة', 'error');
+    document.getElementById('login-pass').value = '';
+  }
+};
+window.logout = function() {
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-overlay').style.display = 'flex';
+  document.getElementById('login-pass').value = '';
+};
+
+// ── Navigation ────────────────────────────────────────
+window.switchTab = function(tab, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  btn.classList.add('active');
+  if (tab === 'codes') loadCodes();
+  if (tab === 'servers') loadServers();
+  if (tab === 'dashboard') loadDashboard();
+  if (tab === 'add-code') loadServerSelector();
+};
+
+// ── Load All ──────────────────────────────────────────
+async function loadAll() {
+  loadDashboard();
+  loadServerSelector();
+  // Set default date (1 year from now)
+  const d = new Date();
+  d.setFullYear(d.getFullYear() + 1);
+  document.getElementById('nc-expiry').value = d.toISOString().split('T')[0];
+}
+
+// ── Dashboard ─────────────────────────────────────────
+async function loadDashboard() {
+  try {
+    const [codesSnap, serversSnap] = await Promise.all([
+      get(ref(db, 'codes')),
+      get(ref(db, 'servers')),
+    ]);
+    const codes = codesSnap.val() || {};
+    const servers = serversSnap.val() || {};
+    const codeList = Object.entries(codes);
+    const total = codeList.length;
+    const active = codeList.filter(([, v]) => v.active !== false).length;
+    document.getElementById('d-total').textContent = total;
+    document.getElementById('d-active').textContent = active;
+    document.getElementById('d-inactive').textContent = total - active;
+    document.getElementById('d-servers').textContent = Object.keys(servers).length;
+    document.getElementById('stat-codes').textContent = total;
+    document.getElementById('stat-servers').textContent = Object.keys(servers).length;
+    // Recent
+    const recent = codeList.slice(-10).reverse();
+    const html = recent.length === 0
+      ? '<div style="color:var(--text2);text-align:center;padding:20px">لا توجد أكواد بعد</div>'
+      : `<table><thead><tr><th>الكود</th><th>الحالة</th><th>الانتهاء</th><th>التسمية</th></tr></thead><tbody>
+      ${recent.map(([k,v]) => `<tr>
+        <td><span class="code-badge">${k}</span></td>
+        <td><span class="status-badge ${v.active!==false?'status-active':'status-inactive'}">${v.active!==false?'✅ نشط':'❌ معطل'}</span></td>
+        <td>${v.expiry||'-'}</td><td>${v.label||'-'}</td>
+      </tr>`).join('')}
+      </tbody></table>`;
+    document.getElementById('recent-codes').innerHTML = html;
+  } catch(e) { showToast('خطأ في تحميل البيانات', 'error'); }
+}
+
+// ── Codes ─────────────────────────────────────────────
+let allCodes = [];
+async function loadCodes() {
+  document.getElementById('codes-body').innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text2);padding:30px">جاري التحميل...</td></tr>';
+  try {
+    const snap = await get(ref(db, 'codes'));
+    const data = snap.val() || {};
+    allCodes = Object.entries(data);
+    renderCodes(allCodes);
+  } catch(e) { showToast('خطأ في تحميل الأكواد', 'error'); }
+}
+function renderCodes(list) {
+  document.getElementById('codes-count').textContent = list.length;
+  if (list.length === 0) {
+    document.getElementById('codes-body').innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text2);padding:30px">لا توجد أكواد</td></tr>';
+    return;
+  }
+  document.getElementById('codes-body').innerHTML = list.map(([k,v]) => `
+    <tr>
+      <td><span class="code-badge">${k}</span></td>
+      <td><span class="status-badge ${v.active!==false?'status-active':'status-inactive'}">${v.active!==false?'✅ نشط':'❌ معطل'}</span></td>
+      <td><span class="type-badge">${v.type||'xtream'}</span></td>
+      <td style="font-size:12px;color:var(--text2)">${v.url?v.url.substring(0,30)+'...':'-'}</td>
+      <td>${v.expiry||'-'}</td>
+      <td>${v.label||'-'}</td>
+      <td>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-sm ${v.active!==false?'btn-danger':'btn-success'}" onclick="toggleCode('${k}',${v.active!==false})">
+            ${v.active!==false?'تعطيل':'تفعيل'}
+          </button>
+          <button class="btn btn-sm btn-danger" onclick="deleteCode('${k}')">🗑️</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+window.filterCodes = function() {
+  const q = document.getElementById('codes-search').value.toLowerCase();
+  renderCodes(allCodes.filter(([k,v]) =>
+    k.toLowerCase().includes(q) || (v.label||'').toLowerCase().includes(q)));
+};
+window.toggleCode = async function(code, currentlyActive) {
+  try {
+    await set(ref(db, `codes/${code}/active`), !currentlyActive);
+    showToast(currentlyActive ? 'تم تعطيل الكود' : 'تم تفعيل الكود', 'success');
+    loadCodes(); loadDashboard();
+  } catch(e) { showToast('خطأ في التحديث', 'error'); }
+};
+window.deleteCode = async function(code) {
+  if (!confirm(`هل تريد حذف الكود ${code} نهائياً؟`)) return;
+  try {
+    await remove(ref(db, `codes/${code}`));
+    showToast('تم حذف الكود', 'success');
+    loadCodes(); loadDashboard();
+  } catch(e) { showToast('خطأ في الحذف', 'error'); }
+};
+window.addCode = async function() {
+  const code = document.getElementById('nc-code').value.trim().toUpperCase();
+  const expiry = document.getElementById('nc-expiry').value;
+  const serverId = document.getElementById('nc-server').value;
+  const label = document.getElementById('nc-label').value.trim();
+  const active = document.getElementById('nc-active').checked;
+  if (!code) { showToast('أدخل الكود', 'error'); return; }
+  if (!expiry) { showToast('أدخل تاريخ الانتهاء', 'error'); return; }
+  // Get server info
+  let serverData = { type:'xtream', url:'', username:'', password:'', mac:'' };
+  if (serverId) {
+    try {
+      const snap = await get(ref(db, `servers/${serverId}`));
+      if (snap.exists()) serverData = { ...serverData, ...snap.val() };
+    } catch(_) {}
+  }
+  const payload = {
+    type: serverData.type || 'xtream',
+    url: serverData.url || '',
+    username: serverData.username || '',
+    password: serverData.password || '',
+    mac: serverData.mac || '',
+    expiry, active, label,
+    serverId: serverId || '',
+  };
+  try {
+    await set(ref(db, `codes/${code}`), payload);
+    showToast(`تم حفظ الكود ${code} ✅`, 'success');
+    document.getElementById('nc-code').value = '';
+    document.getElementById('nc-label').value = '';
+    loadDashboard();
+  } catch(e) { showToast('خطأ في الحفظ: ' + e.message, 'error'); }
+};
+
+// ── Code Generator ────────────────────────────────────
+window.generateCode = function() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const seg = () => Array.from({length:4},()=>chars[Math.floor(Math.random()*chars.length)]).join('');
+  const code = seg() + '-' + seg();
+  document.getElementById('gen-preview').textContent = code;
+  document.getElementById('nc-code').value = code;
+};
+window.copyCode = function() {
+  const code = document.getElementById('gen-preview').textContent;
+  if (code === 'اضغط لتوليد كود') return;
+  navigator.clipboard.writeText(code).then(() => showToast('تم نسخ الكود 📋', 'success'));
+};
+
+// ── Servers ───────────────────────────────────────────
+async function loadServers() {
+  document.getElementById('servers-body').innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text2);padding:30px">جاري التحميل...</td></tr>';
+  try {
+    const snap = await get(ref(db, 'servers'));
+    const data = snap.val() || {};
+    const list = Object.entries(data);
+    document.getElementById('servers-count').textContent = list.length;
+    if (list.length === 0) {
+      document.getElementById('servers-body').innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text2);padding:30px">لا توجد سيرفرات</td></tr>';
+      return;
+    }
+    document.getElementById('servers-body').innerHTML = list.map(([k,v]) => `
+      <tr>
+        <td style="font-weight:600">${v.name||k}</td>
+        <td><span class="type-badge">${v.type||'xtream'}</span></td>
+        <td style="font-size:12px;color:var(--text2);max-width:200px;overflow:hidden;text-overflow:ellipsis">${v.url||'-'}</td>
+        <td style="font-size:12px;color:var(--text2)">${v.username||'-'}</td>
+        <td>
+          <button class="btn btn-sm btn-danger" onclick="deleteServer('${k}')">🗑️ حذف</button>
+        </td>
+      </tr>`).join('');
+  } catch(e) { showToast('خطأ في تحميل السيرفرات', 'error'); }
+}
+async function loadServerSelector() {
+  try {
+    const snap = await get(ref(db, 'servers'));
+    const data = snap.val() || {};
+    const sel = document.getElementById('nc-server');
+    sel.innerHTML = '<option value="">-- اختر السيرفر --</option>';
+    Object.entries(data).forEach(([k,v]) => {
+      const opt = document.createElement('option');
+      opt.value = k; opt.textContent = `${v.name||k} (${v.type||'xtream'})`;
+      sel.appendChild(opt);
+    });
+  } catch(_) {}
+}
+window.addServer = async function() {
+  const name = document.getElementById('ns-name').value.trim();
+  const type = document.getElementById('ns-type').value;
+  const url = document.getElementById('ns-url').value.trim();
+  const username = document.getElementById('ns-username').value.trim();
+  const password = document.getElementById('ns-password').value.trim();
+  const mac = document.getElementById('ns-mac').value.trim();
+  if (!name) { showToast('أدخل اسم السيرفر', 'error'); return; }
+  if (!url) { showToast('أدخل رابط السيرفر', 'error'); return; }
+  const payload = { name, type, url };
+  if (type === 'xtream') { payload.username = username; payload.password = password; }
+  if (type === 'mac') payload.mac = mac;
+  try {
+    const newRef = push(ref(db, 'servers'));
+    await set(newRef, payload);
+    showToast('تم حفظ السيرفر ✅', 'success');
+    document.getElementById('ns-name').value = '';
+    document.getElementById('ns-url').value = '';
+    document.getElementById('ns-username').value = '';
+    document.getElementById('ns-password').value = '';
+    document.getElementById('ns-mac').value = '';
+    loadServerSelector();
+  } catch(e) { showToast('خطأ في الحفظ: ' + e.message, 'error'); }
+};
+window.deleteServer = async function(id) {
+  if (!confirm('هل تريد حذف هذا السيرفر؟')) return;
+  try {
+    await remove(ref(db, `servers/${id}`));
+    showToast('تم حذف السيرفر', 'success');
+    loadServers(); loadServerSelector();
+  } catch(e) { showToast('خطأ في الحذف', 'error'); }
+};
+window.updateServerFields = function() {
+  const type = document.getElementById('ns-type').value;
+  document.getElementById('xtream-fields').style.display = type === 'xtream' ? '' : 'none';
+  document.getElementById('mac-fields').style.display = type === 'mac' ? '' : 'none';
+};
+
+// ── Toast ─────────────────────────────────────────────
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+window.showToast = showToast;
+</script>
+</body>
+</html>
