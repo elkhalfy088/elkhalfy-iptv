@@ -189,7 +189,8 @@ class _PlayerScreenState extends State<PlayerScreen>
     final pos = _ctrl!.value.position;
     final dur = _ctrl!.value.duration;
     final next = pos + Duration(seconds: seconds);
-    _ctrl!.seekTo(next.clamp(Duration.zero, dur));
+    final clamped = next < Duration.zero ? Duration.zero : (next > dur ? dur : next);
+    _ctrl!.seekTo(clamped);
     _startHideTimer();
   }
 
