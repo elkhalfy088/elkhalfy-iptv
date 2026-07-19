@@ -8,69 +8,56 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
-      - name: ⬇️ Checkout code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: ☕ Setup Java 17
+      - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: 🐦 Setup Flutter
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.5'
+          flutter-version: '3.27.3'
           channel: 'stable'
           cache: true
 
-      - name: 📦 Get packages
+      - name: Get packages
         run: flutter pub get
 
-      - name: 🔨 Build APK (release)
+      - name: Build APK
         run: flutter build apk --release --split-per-abi
 
-      - name: 📱 Upload APK arm64 (للهواتف الحديثة)
+      - name: Upload APK arm64
         uses: actions/upload-artifact@v4
         with:
           name: Elkhalfy-IPTV-arm64
           path: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
           retention-days: 30
 
-      - name: 📱 Upload APK armeabi (للهواتف القديمة)
+      - name: Upload APK armeabi
         uses: actions/upload-artifact@v4
         with:
           name: Elkhalfy-IPTV-armeabi
           path: build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
           retention-days: 30
 
-      - name: 📱 Upload APK universal
-        uses: actions/upload-artifact@v4
-        with:
-          name: Elkhalfy-IPTV-universal
-          path: build/app/outputs/flutter-apk/app-release.apk
-          retention-days: 30
-
-      - name: 🚀 Create Release
+      - name: Create Release
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
         with:
           tag_name: v${{ github.run_number }}
           name: "Elkhalfy IPTV v${{ github.run_number }}"
           body: |
-            ## 📱 Elkhalfy IPTV - تحديث تلقائي
-            
-            ### 📥 رابط التحميل المباشر:
-            - **arm64** (للهواتف الحديثة 2018+) ← الأفضل
-            - **armeabi** (للهواتف القديمة)
-            
-            ### ✨ المميزات:
-            - مشغل IPTV احترافي
-            - إعادة تشغيل تلقائية عند انقطاع البث
-            - دعم Xtream / M3U8 / MAC
-            - تفعيل بكود Firebase
+            ## Elkhalfy IPTV - تطبيق IPTV الاحترافي
+
+            ### تحميل مباشر:
+            - **arm64** للهواتف الحديثة (2018+) ← الأفضل
+            - **armeabi** للهواتف القديمة
           files: |
             build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
             build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
