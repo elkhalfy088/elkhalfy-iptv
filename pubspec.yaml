@@ -17,7 +17,7 @@ dependencies:
   wakelock_plus: ^1.2.10
 
 dependency_overrides:
-  package_info_plus: 7.0.2
+  package_info_plus: ^8.1.2
 
 dev_dependencies:
   flutter_test:
